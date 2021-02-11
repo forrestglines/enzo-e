@@ -72,7 +72,7 @@ debug_verbose = 0
 # [] ()
 #----------------------------------------------------------------------
 
-memory = 1
+memory = 0
 
 #----------------------------------------------------------------------
 # Enable charm++ dynamic load balancing
@@ -94,7 +94,7 @@ use_gprof = 0
 # WARNING: must update grackle-related lines in src/Enzo/enzo.ci
 #----------------------------------------------------------------------
 
-use_grackle = 1
+use_grackle = 0
 
 #----------------------------------------------------------------------
 # Whether to run the test programs using valgrind to check for memory leaks
@@ -277,6 +277,7 @@ elif (arch == "davros_gnu_debug"):  from davros_gnu_debug  import *
 elif (arch == "darwin_gnu"):   from darwin_gnu   import *
 elif (arch == "darwin_homebrew"):   from darwin_homebrew   import *
 elif (arch == "msu_hpcc_gcc"): from msu_hpcc_gcc   import *
+elif (arch == "msu_hpcc_gcc_kokkos"): from msu_hpcc_gcc_kokkos   import *
 
 #======================================================================
 # END ARCHITECTURE SETTINGS
@@ -350,7 +351,8 @@ if (smp != 0):           defines.append( define_smp )
 
 charmc = charm_path + '/bin/charmc -language charm++ '
 
-cxx = charmc + charm_perf + ' '
+#cxx = charmc + charm_perf + ' '
+print("Ignoring cxx = charmc + " + charm_perf)
 
 if (balance == 1):
      flags_cxx_charm = flags_cxx_charm + " -balancer " + " -balancer ".join(balancer)
@@ -451,7 +453,9 @@ environ  = os.environ
 cxxflags = flags_arch + ' ' + flags_arch_cpp
 cxxflags = cxxflags + ' ' + flags_cxx
 cxxflags = cxxflags + ' ' + flags_config
-cxxflags = cxxflags + ' ' + flags_cxx_charm
+#cxxflags = cxxflags + ' ' + flags_cxx_charm
+print("Ignoring cxxflags: " + flags_cxx_charm)
+print("Using " + cxx)
 Export('cxxflags')
 
 cflags   = flags_arch
@@ -492,6 +496,7 @@ env = Environment (
      FORTRANLIBS  = libs_fortran,
      FORTRANPATH  = fortranpath,
      LIBPATH      = libpath,
+     LINK         = charmc,
      LINKFLAGS    = linkflags )
 
 cello_def.write ("#define CELLO_ARCH "
@@ -575,7 +580,7 @@ Clean('.','test/CHARM_BUILD')
 # BUILDERS
 #======================================================================
 
-charm_builder = Builder (action="${CXX} $SOURCE; mv ${ARG}.*.h `dirname $SOURCE`")
+charm_builder = Builder (action=charmc+" $SOURCE; mv ${ARG}.*.h `dirname $SOURCE`")
 cpp_builder = Builder (action="/usr/bin/cpp -E -P $_CPPDEFFLAGS $SOURCE > $TARGET")
 env.Append(BUILDERS = { 'CharmBuilder' : charm_builder })
 env.Append(BUILDERS = { 'CppBuilder'   : cpp_builder })
